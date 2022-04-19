@@ -222,6 +222,8 @@ class PhoneInput extends React.Component {
 
     const highlightCountryIndex = onlyCountries.findIndex(o => o == countryGuess);
 
+    this.portalRef = React.createRef();
+
     this.state = {
       showDropdown: props.showDropdown,
 
@@ -757,7 +759,10 @@ class PhoneInput extends React.Component {
   }
 
   handleClickOutside = (e) => {
-    if (this.dropdownRef && !this.dropdownContainerRef.contains(e.target)) {
+    const portal = this.portalRef.current;
+
+    if (portal && !portal.contains(e.target)) {
+      console.log('handleClickOutside')
       this.state.showDropdown && this.setState({ showDropdown: false });
     }
   }
@@ -962,7 +967,10 @@ class PhoneInput extends React.Component {
       <div
         className={`${containerClasses} ${this.props.className}`}
         style={this.props.style || this.props.containerStyle}
-        onKeyDown={this.handleKeydown}>
+        onKeyDown={this.handleKeydown}
+        ref={el => {
+          this.wrapperInputRef = el;
+        }}>
         {specialLabel && <div className='special-label'>{specialLabel}</div>}
         {errorMessage && <div className='invalid-number-message'>{errorMessage}</div>}
         <input
@@ -1012,7 +1020,7 @@ class PhoneInput extends React.Component {
             </div>
           </div>}
 
-          {showDropdown && <Portal id={this.props.dropdownPortalId} inputRef={this.numberInputRef}>{this.getCountryDropdownList()}</Portal>}
+          {showDropdown && <Portal id={this.props.dropdownPortalId} portalRef={this.portalRef} inputRef={this.wrapperInputRef}>{this.getCountryDropdownList()}</Portal>}
         </div>
       </div>
     );

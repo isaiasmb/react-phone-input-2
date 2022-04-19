@@ -2,10 +2,9 @@ import React, { useMemo } from 'react';
 
 import { usePortal } from './hooks/usePortal';
 
-const PortalWrapper = ({ id, container, inputRef, children }) => {
+const PortalWrapper = ({ id, container, portalRef, inputRef, children }) => {
     const { Portal } = usePortal({ id, container });
 
-    console.log('inputRef: ', inputRef);
     const rect = inputRef.getBoundingClientRect();
 
     const { top, left } = useMemo(() => {
@@ -18,7 +17,7 @@ const PortalWrapper = ({ id, container, inputRef, children }) => {
 
     return (
         <Portal>
-            <div className="react-tel-input" style={{ position: 'absolute', margin: 0, top, left }}>
+            <div className="react-tel-input" style={{ position: 'absolute', margin: 0, top, left }} ref={portalRef}>
                 {children}
             </div>
         </Portal>
