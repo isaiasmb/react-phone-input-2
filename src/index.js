@@ -5,6 +5,7 @@ import memoize from 'lodash.memoize';
 import reduce from 'lodash.reduce';
 import startsWith from 'lodash.startswith';
 import classNames from 'classnames';
+import Portal from './Portal';
 import './utils/prototypes'
 
 import CountryData from './CountryData.js';
@@ -100,6 +101,9 @@ class PhoneInput extends React.Component {
     ]),
     defaultErrorMessage: PropTypes.string,
     specialLabel: PropTypes.string,
+
+    dropdownPortalId: PropTypes.string,
+    dropdownPortalContainer: PropTypes.node
   }
 
   static defaultProps = {
@@ -166,6 +170,9 @@ class PhoneInput extends React.Component {
     isValid: true, // (value, selectedCountry, onlyCountries, hiddenAreaCodes) => true | false | 'Message'
     defaultErrorMessage: '',
     specialLabel: 'Phone',
+
+    dropdownPortalId: undefined,
+    dropdownPortalContainer: undefined,
 
     onEnterKeyPress: null, // null or function
 
@@ -1005,7 +1012,7 @@ class PhoneInput extends React.Component {
             </div>
           </div>}
 
-          {showDropdown && this.getCountryDropdownList()}
+          {showDropdown && <Portal id={this.props.dropdownPortalId} inputRef={this.numberInputRef}>{this.getCountryDropdownList()}</Portal>}
         </div>
       </div>
     );
