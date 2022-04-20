@@ -761,8 +761,7 @@ class PhoneInput extends React.Component {
   handleClickOutside = (e) => {
     const portal = this.portalRef.current;
 
-    if (portal && !portal.contains(e.target)) {
-      console.log('handleClickOutside')
+    if ((this.dropdownRef && !this.dropdownContainerRef.contains(e.target)) && (portal && !portal.contains(e.target))) {
       this.state.showDropdown && this.setState({ showDropdown: false });
     }
   }
