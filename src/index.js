@@ -10,7 +10,7 @@ import './utils/prototypes'
 
 import CountryData, { getCountryItem as _getCountryItem } from './CountryData.js';
 
-const getCountryData = (selectedCountry) => {
+export const getCountryData = (selectedCountry) => {
   if (!selectedCountry) return {}
   return {
     name: selectedCountry.name || '',
