@@ -9,8 +9,18 @@ function getMask(prefix, dialCode, predefinedMask, defaultMask, alwaysDefaultMas
   }
 }
 
+export const getCountryItem = (countryDataArray, prefix, defaultMask, alwaysDefaultMask) => ({
+  name: countryDataArray[0],
+  regions: countryDataArray[1],
+  iso2: countryDataArray[2],
+  countryCode: countryDataArray[3],
+  dialCode: countryDataArray[3],
+  format: getMask(prefix, countryDataArray[3], countryDataArray[4], defaultMask, alwaysDefaultMask),
+  priority: countryDataArray[5] || 0,
+});
+
 // enableAreaCodes: boolean || array of iso2 codes
-function initCountries(countries, enableAreaCodes, prefix, defaultMask, alwaysDefaultMask) {
+export function initCountries(countries, enableAreaCodes, prefix, defaultMask, alwaysDefaultMask) {
   let hiddenAreaCodes = [];
 
   let enableAllCodes;
@@ -18,15 +28,7 @@ function initCountries(countries, enableAreaCodes, prefix, defaultMask, alwaysDe
   else { enableAllCodes = false }
 
   const initializedCountries = [].concat(...countries.map((country) => {
-    const countryItem = {
-      name: country[0],
-      regions: country[1],
-      iso2: country[2],
-      countryCode: country[3],
-      dialCode: country[3],
-      format: getMask(prefix, country[3], country[4], defaultMask, alwaysDefaultMask),
-      priority: country[5] || 0,
-    };
+    const countryItem = getCountryItem(country, prefix, defaultMask, alwaysDefaultMask);
 
     const areaItems = [];
 

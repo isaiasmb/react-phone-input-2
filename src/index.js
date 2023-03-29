@@ -8,7 +8,83 @@ import classNames from 'classnames';
 import Portal from './Portal';
 import './utils/prototypes'
 
-import CountryData from './CountryData.js';
+import CountryData, { getCountryItem as _getCountryItem } from './CountryData.js';
+
+const defaultProps = {
+  country: '',
+  value: '',
+
+  onlyCountries: [],
+  preferredCountries: [],
+  excludeCountries: [],
+
+  placeholder: '1 (702) 123-4567',
+  searchPlaceholder: 'search',
+  searchNotFound: 'No entries to show',
+  flagsImagePath: './flags.png',
+  disabled: false,
+
+  containerStyle: {},
+  inputStyle: {},
+  buttonStyle: {},
+  dropdownStyle: {},
+  searchStyle: {},
+
+  containerClass: '',
+  inputClass: '',
+  buttonClass: '',
+  dropdownClass: '',
+  searchClass: '',
+  className: '',
+
+  autoFormat: true,
+  enableAreaCodes: false,
+  enableTerritories: false,
+  disableCountryCode: false,
+  disableDropdown: false,
+  enableLongNumbers: false,
+  countryCodeEditable: true,
+  enableSearch: false,
+  disableSearchIcon: false,
+  disableInitialCountryGuess: false,
+  disableCountryGuess: false,
+
+  regions: '',
+
+  inputProps: {},
+  localization: {},
+
+  masks: null,
+  priority: null,
+  areaCodes: null,
+
+  preserveOrder: [],
+
+  defaultMask: '... ... ... ... ..',
+  alwaysDefaultMask: false,
+  prefix: '+',
+  copyNumbersOnly: true,
+  renderStringAsFlag: '',
+  autocompleteSearch: false,
+  jumpCursorToEnd: true,
+  enableAreaCodeStretch: false,
+  enableClickOutside: true,
+  showDropdown: false,
+
+  isValid: true, // (value, selectedCountry, onlyCountries, hiddenAreaCodes) => true | false | 'Message'
+  defaultErrorMessage: '',
+  specialLabel: 'Phone',
+
+  dropdownPortalId: undefined,
+  dropdownPortalContainer: undefined,
+
+  onEnterKeyPress: null, // null or function
+
+  keys: {
+    UP: 38, DOWN: 40, RIGHT: 39, LEFT: 37, ENTER: 13,
+    ESC: 27, PLUS: 43, A: 65, Z: 90, SPACE: 32, TAB: 9,
+  }
+}
 
 class PhoneInput extends React.Component {
   static propTypes = {
@@ -106,81 +182,7 @@ class PhoneInput extends React.Component {
     dropdownPortalContainer: PropTypes.node
   }
 
-  static defaultProps = {
-    country: '',
-    value: '',
-
-    onlyCountries: [],
-    preferredCountries: [],
-    excludeCountries: [],
-
-    placeholder: '1 (702) 123-4567',
-    searchPlaceholder: 'search',
-    searchNotFound: 'No entries to show',
-    flagsImagePath: './flags.png',
-    disabled: false,
-
-    containerStyle: {},
-    inputStyle: {},
-    buttonStyle: {},
-    dropdownStyle: {},
-    searchStyle: {},
-
-    containerClass: '',
-    inputClass: '',
-    buttonClass: '',
-    dropdownClass: '',
-    searchClass: '',
-    className: '',
-
-    autoFormat: true,
-    enableAreaCodes: false,
-    enableTerritories: false,
-    disableCountryCode: false,
-    disableDropdown: false,
-    enableLongNumbers: false,
-    countryCodeEditable: true,
-    enableSearch: false,
-    disableSearchIcon: false,
-    disableInitialCountryGuess: false,
-    disableCountryGuess: false,
-
-    regions: '',
-
-    inputProps: {},
-    localization: {},
-
-    masks: null,
-    priority: null,
-    areaCodes: null,
-
-    preserveOrder: [],
-
-    defaultMask: '... ... ... ... ..', // prefix+dialCode+' '+defaultMask
-    alwaysDefaultMask: false,
-    prefix: '+',
-    copyNumbersOnly: true,
-    renderStringAsFlag: '',
-    autocompleteSearch: false,
-    jumpCursorToEnd: true,
-    enableAreaCodeStretch: false,
-    enableClickOutside: true,
-    showDropdown: false,
-
-    isValid: true, // (value, selectedCountry, onlyCountries, hiddenAreaCodes) => true | false | 'Message'
-    defaultErrorMessage: '',
-    specialLabel: 'Phone',
-
-    dropdownPortalId: undefined,
-    dropdownPortalContainer: undefined,
-
-    onEnterKeyPress: null, // null or function
-
-    keys: {
-      UP: 38, DOWN: 40, RIGHT: 39, LEFT: 37, ENTER: 13,
-      ESC: 27, PLUS: 43, A: 65, Z: 90, SPACE: 32, TAB: 9,
-    }
-  }
+  static defaultProps = defaultProps;
 
   constructor(props) {
     super(props);
@@ -1025,5 +1027,11 @@ class PhoneInput extends React.Component {
     );
   }
 }
+
+export const getCountryItem = (countryDataArray, prefix = defaultProps.prefix, defaultMask = defaultProps.defaultMask, alwaysDefaultMask = defaultProps.alwaysDefaultMask) => {
+  return _getCountryItem(countryDataArray, prefix, defaultMask, alwaysDefaultMask);
+};
+
+export { default as countriesList } from './rawCountries';
 
 export default PhoneInput;

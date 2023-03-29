@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import PhoneInput from '../../src/index';
+import PhoneInput, { countriesList, getCountryItem } from '../../src/index';
 import '../../src/style/style.less';
 
 
@@ -9,6 +9,12 @@ class Demo extends React.Component {
     playgroundProps: {country: 'us', enableAreaCodes: true} }
 
   playgroundKey = 1
+
+  componentDidMount() {
+    countriesList.forEach((country) => {
+      // console.log(getCountryItem(country))
+    });
+  }
 
   renderPlayground = (e) => {
     if (e.which === 13) {

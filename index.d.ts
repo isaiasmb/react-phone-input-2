@@ -1,12 +1,20 @@
 declare module "react-phone-input-2" {
   import React from "react";
 
+  type Regions = string | string[];
+
   export interface CountryData {
     name: string;
     dialCode: string;
     countryCode: string;
     format: string;
   }
+
+  export type CountryItem = {
+    regions: Regions;
+    iso2: string;
+    priority: number;
+  } & CountryData;
 
   interface Style {
     containerClass?: string;
@@ -80,7 +88,7 @@ declare module "react-phone-input-2" {
     enableSearch?: boolean;
     disableSearchIcon?: boolean;
 
-    regions?: string | string[];
+    regions?: Regions;
 
     inputProps?: object;
     localization?: object;
