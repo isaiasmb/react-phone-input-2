@@ -3,7 +3,7 @@ declare module "react-phone-input-2" {
 
   type Regions = string | string[];
 
-  export interface CountryData {
+  export type CountryData = {
     name: string;
     dialCode: string;
     countryCode: string;
