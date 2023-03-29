@@ -118,6 +118,7 @@ declare module "react-phone-input-2" {
 
   export function getCountryItem(countryDataArray: any, prefix?: string, defaultMask?: string, alwaysDefaultMask?: string): CountryItem;
   export function getCountryData(selectedCountry: CountryItem): CountryData;
+  export function guessSelectedCountry(inputNumber: string, country: CountryItem, onlyCountries?: string[], hiddenAreaCodes?: CountryItem[], enableAreaCodes?: boolean): number;
   export const countriesList: [];
 
   const PhoneInput: React.FC<PhoneInputProps>;

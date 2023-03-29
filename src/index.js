@@ -10,16 +10,6 @@ import './utils/prototypes'
 
 import CountryData, { getCountryItem as _getCountryItem } from './CountryData.js';
 
-export const getCountryData = (selectedCountry) => {
-  if (!selectedCountry) return {}
-  return {
-    name: selectedCountry.name || '',
-    dialCode: selectedCountry.dialCode || '',
-    countryCode: selectedCountry.iso2 || '',
-    format: selectedCountry.format || ''
-  }
-}
-
 const defaultProps = {
   country: '',
   value: '',
@@ -95,6 +85,52 @@ const defaultProps = {
     ESC: 27, PLUS: 43, A: 65, Z: 90, SPACE: 32, TAB: 9,
   }
 }
+
+export const getCountryData = (selectedCountry) => {
+  if (!selectedCountry) return {}
+  return {
+    name: selectedCountry.name || '',
+    dialCode: selectedCountry.dialCode || '',
+    countryCode: selectedCountry.iso2 || '',
+    format: selectedCountry.format || ''
+  }
+}
+
+export const guessSelectedCountry = (inputNumber, country, onlyCountries = [], hiddenAreaCodes = [], enableAreaCodes = defaultProps.enableAreaCodes) => {
+  if (enableAreaCodes === false) {
+    let mainCode;
+    hiddenAreaCodes.some(country => {
+      if (startsWith(inputNumber, country.dialCode)) {
+        onlyCountries.some(o => {
+          if (country.iso2 === o.iso2 && o.mainCode) {
+            mainCode = o;
+            return true;
+          }
+        })
+        return true;
+      }
+    })
+    if (mainCode) return mainCode;
+  }
+
+  const secondBestGuess = onlyCountries.find(o => o.iso2 == country);
+  if (inputNumber.trim() === '') return secondBestGuess;
+
+  const bestGuess = onlyCountries.reduce((selectedCountry, country) => {
+    if (startsWith(inputNumber, country.dialCode)) {
+      if (country.dialCode.length > selectedCountry.dialCode.length) {
+        return country;
+      }
+      if (country.dialCode.length === selectedCountry.dialCode.length && country.priority < selectedCountry.priority) {
+        return country;
+      }
+    }
+    return selectedCountry;
+  }, {dialCode: '', priority: 10001});
+
+  if (!bestGuess.name) return secondBestGuess;
+  return bestGuess;
+};
 
 class PhoneInput extends React.Component {
   static propTypes = {
@@ -210,7 +246,7 @@ class PhoneInput extends React.Component {
       countryGuess = 0;
     } else if (inputNumber.length > 1) {
       // Country detect by phone
-      countryGuess = this.guessSelectedCountry(inputNumber.substring(0, 6), props.country, onlyCountries, hiddenAreaCodes) || 0;
+      countryGuess = guessSelectedCountry(inputNumber.substring(0, 6), props.country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || 0;
     } else if (props.country) {
       // Default country
       countryGuess = onlyCountries.find(o => o.iso2 == props.country) || 0;
@@ -288,45 +324,6 @@ class PhoneInput extends React.Component {
     return probableCountries[0];
   });
 
-  guessSelectedCountry = memoize((inputNumber, country, onlyCountries, hiddenAreaCodes) => {
-    // if enableAreaCodes == false, try to search in hidden area codes to detect area code correctly
-    // then search and insert main country which has this area code
-    // https://github.com/bl00mber/react-phone-input-2/issues/201
-    if (this.props.enableAreaCodes === false) {
-      let mainCode;
-      hiddenAreaCodes.some(country => {
-        if (startsWith(inputNumber, country.dialCode)) {
-          onlyCountries.some(o => {
-            if (country.iso2 === o.iso2 && o.mainCode) {
-              mainCode = o;
-              return true;
-            }
-          })
-          return true;
-        }
-      })
-      if (mainCode) return mainCode;
-    }
-
-    const secondBestGuess = onlyCountries.find(o => o.iso2 == country);
-    if (inputNumber.trim() === '') return secondBestGuess;
-
-    const bestGuess = onlyCountries.reduce((selectedCountry, country) => {
-      if (startsWith(inputNumber, country.dialCode)) {
-        if (country.dialCode.length > selectedCountry.dialCode.length) {
-          return country;
-        }
-        if (country.dialCode.length === selectedCountry.dialCode.length && country.priority < selectedCountry.priority) {
-          return country;
-        }
-      }
-      return selectedCountry;
-    }, {dialCode: '', priority: 10001}, this);
-
-    if (!bestGuess.name) return secondBestGuess;
-    return bestGuess;
-  });
-
   // Hooks for updated props
   updateCountry = (country) => {
     const { onlyCountries } = this.state
@@ -363,7 +360,7 @@ class PhoneInput extends React.Component {
     else {
       if (this.props.disableCountryGuess) {newSelectedCountry = selectedCountry;}
       else {
-        newSelectedCountry = this.guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes) || selectedCountry;
+        newSelectedCountry = guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || selectedCountry;
       }
       const dialCode = newSelectedCountry && startsWith(inputNumber, prefix + newSelectedCountry.dialCode) ? newSelectedCountry.dialCode : '';
 
@@ -574,7 +571,7 @@ class PhoneInput extends React.Component {
       if (!this.state.freezeSelection || (!!selectedCountry && selectedCountry.dialCode.length > inputNumber.length)) {
         if (this.props.disableCountryGuess) {newSelectedCountry = selectedCountry;}
         else {
-          newSelectedCountry = this.guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes) || selectedCountry;
+          newSelectedCountry = guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || selectedCountry;
         }
         freezeSelection = false;
       }
