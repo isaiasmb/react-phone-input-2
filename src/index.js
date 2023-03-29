@@ -10,6 +10,16 @@ import './utils/prototypes'
 
 import CountryData, { getCountryItem as _getCountryItem } from './CountryData.js';
 
+const getCountryData = (selectedCountry) => {
+  if (!selectedCountry) return {}
+  return {
+    name: selectedCountry.name || '',
+    dialCode: selectedCountry.dialCode || '',
+    countryCode: selectedCountry.iso2 || '',
+    format: selectedCountry.format || ''
+  }
+}
+
 const defaultProps = {
   country: '',
   value: '',
@@ -248,7 +258,7 @@ class PhoneInput extends React.Component {
       document.addEventListener('mousedown', this.handleClickOutside);
     }
     if(this.props.onMount){
-        this.props.onMount(this.state.formattedNumber.replace(/[^0-9]+/g,''), this.getCountryData(), this.state.formattedNumber)
+        this.props.onMount(this.state.formattedNumber.replace(/[^0-9]+/g,''), getCountryData(this.state.selectedCountry), this.state.formattedNumber)
     }
   }
 
@@ -489,19 +499,6 @@ class PhoneInput extends React.Component {
     return this[`flag_no_${index}`];
   }
 
-  // return country data from state
-  getCountryData = () => {
-    if (!this.state.selectedCountry) return {}
-    return {
-      name: this.state.selectedCountry.name || '',
-      dialCode: this.state.selectedCountry.dialCode || '',
-      countryCode: this.state.selectedCountry.iso2 || '',
-      format: this.state.selectedCountry.format || ''
-    }
-  }
-
-
-
   handleFlagDropdownClick = (e) => {
     e.preventDefault();
     if (!this.state.showDropdown && this.props.disabled) return;
@@ -540,7 +537,7 @@ class PhoneInput extends React.Component {
 
     if (value === prefix) {
       // we should handle change when we delete the last digit
-      if (onChange) onChange('', this.getCountryData(), e, '');
+      if (onChange) onChange('', getCountryData(this.state.selectedCountry), e, '');
       return this.setState({ formattedNumber: '' });
     }
 
@@ -609,13 +606,13 @@ class PhoneInput extends React.Component {
         this.numberInputRef.setSelectionRange(oldCaretPosition, oldCaretPosition);
       }
 
-      if (onChange) onChange(formattedNumber.replace(/[^0-9]+/g,''), this.getCountryData(), e, formattedNumber);
+      if (onChange) onChange(formattedNumber.replace(/[^0-9]+/g,''), getCountryData(this.state.selectedCountry), e, formattedNumber);
     });
   }
 
   handleInputClick = (e) => {
     this.setState({ showDropdown: false });
-    if (this.props.onClick) this.props.onClick(e, this.getCountryData());
+    if (this.props.onClick) this.props.onClick(e, getCountryData(this.state.selectedCountry));
   }
 
   handleDoubleClick = (e) => {
@@ -640,7 +637,7 @@ class PhoneInput extends React.Component {
       searchValue: ''
     }, () => {
       this.cursorToEnd();
-      if (this.props.onChange) this.props.onChange(formattedNumber.replace(/[^0-9]+/g,''), this.getCountryData(), e, formattedNumber);
+      if (this.props.onChange) this.props.onChange(formattedNumber.replace(/[^0-9]+/g,''), getCountryData(this.state.selectedCountry), e, formattedNumber);
     });
   }
 
@@ -656,13 +653,13 @@ class PhoneInput extends React.Component {
 
     this.setState({ placeholder: '' });
 
-    this.props.onFocus && this.props.onFocus(e, this.getCountryData());
+    this.props.onFocus && this.props.onFocus(e, getCountryData(this.state.selectedCountry));
     this.props.jumpCursorToEnd && setTimeout(this.cursorToEnd, 0);
   }
 
   handleInputBlur = (e) => {
     if (!e.target.value) this.setState({ placeholder: this.props.placeholder });
-    this.props.onBlur && this.props.onBlur(e, this.getCountryData());
+    this.props.onBlur && this.props.onBlur(e, getCountryData(this.state.selectedCountry));
   }
 
   handleInputCopy = (e) => {
