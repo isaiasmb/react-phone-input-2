@@ -115,6 +115,10 @@ declare module "react-phone-input-2" {
     disableInitialCountryGuess?: boolean;
     disableCountryGuess?: boolean;
   }
+
+  export function getCountryItem(countryDataArray: any, prefix?: string, defaultMask?: string, alwaysDefaultMask?: string): CountryItem;
+  export const countriesList: [];
+
   const PhoneInput: React.FC<PhoneInputProps>;
   export default PhoneInput;
 }
