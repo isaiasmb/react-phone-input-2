@@ -180,7 +180,7 @@ declare module "react-phone-input-2" {
 
   export function getCountryItem(countryDataArray: any, prefix?: string, defaultMask?: string, alwaysDefaultMask?: string): CountryItem;
   export function getCountryData(selectedCountry: CountryItem): CountryData;
-  export function getInitializedCountries(props: GetInitializedCountriesProps = {}): CountryItem[];
+  export function getInitializedCountries(props: GetInitializedCountriesProps = {}): { initializedCountries: CountryItem[], hiddenAreaCodes: CountryItem[] };
   export function guessSelectedCountry(props: GuessSelectedCountryProps): number;
   export function localizeCountries(props: LocalizeCountriesProps): CountryItem[];
   export function removeCountries(props: RemoveCountriesProps): CountryItem[];
