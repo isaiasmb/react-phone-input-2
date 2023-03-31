@@ -16,6 +16,8 @@ declare module "react-phone-input-2" {
     priority: number;
   } & CountryData;
 
+  export type Country = string | number;
+
   interface Style {
     containerClass?: string;
     inputClass?: string;
@@ -90,7 +92,7 @@ declare module "react-phone-input-2" {
   };
 
   export interface PhoneInputProps extends PhoneInputEventsProps, Style {
-    country?: string | number;
+    country?: Country;
     value?: string | null;
 
     onlyCountries?: string[];
@@ -143,8 +145,8 @@ declare module "react-phone-input-2" {
 
   type GuessSelectedCountryProps = {
     inputNumber: string;
-    country: CountryItem;
-    onlyCountries?: string[];
+    country: Country;
+    onlyCountries?: CountryItem[];
     hiddenAreaCodes?: CountryItem[];
     enableAreaCodes?: boolean;
   };
