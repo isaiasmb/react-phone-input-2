@@ -8,9 +8,12 @@ import classNames from 'classnames';
 import Portal from './Portal';
 import './utils/prototypes'
 
-import CountryData, { getCountryItem as _getCountryItem } from './CountryData.js';
+import * as countryData from './utils/countryData';
 
-const defaultProps = {
+export { default as countriesList } from './rawCountries';
+export { default as territoriesList } from './rawTerritories'
+
+export const defaultProps = {
   country: '',
   value: '',
 
@@ -84,7 +87,68 @@ const defaultProps = {
     UP: 38, DOWN: 40, RIGHT: 39, LEFT: 37, ENTER: 13,
     ESC: 27, PLUS: 43, A: 65, Z: 90, SPACE: 32, TAB: 9,
   }
-}
+};
+
+export const initCountries = ({
+  countries,
+  enableAreaCodes = defaultProps.enableAreaCodes,
+  prefix = defaultProps.prefix,
+  defaultMask = defaultProps.defaultMask,
+  alwaysDefaultMask = defaultProps.alwaysDefaultMask
+}) => {
+  return countryData.initCountries({ countries, enableAreaCodes, prefix, defaultMask, alwaysDefaultMask });
+};
+
+export const getInitializedCountries = ({
+  priority,
+  areaCodes,
+  enableAreaCodes,
+  prefix,
+  enableTerritories,
+  regions,
+  masks,
+  defaultMask,
+  alwaysDefaultMask
+} = {}) => {
+  return countryData.getInitializedCountries({
+    priority: priority || defaultProps.priority,
+    areaCodes: areaCodes || defaultProps.areaCodes,
+    enableAreaCodes: enableAreaCodes || defaultProps.enableAreaCodes,
+    prefix: prefix || defaultProps.prefix,
+    enableTerritories: enableTerritories || defaultProps.enableTerritories,
+    regions: regions || defaultProps.regions,
+    masks: masks || defaultProps.masks,
+    defaultMask: defaultMask || defaultProps.defaultMask,
+    alwaysDefaultMask: alwaysDefaultMask || defaultProps.alwaysDefaultMask
+  });
+};
+
+export const getFilteredCountryList = ({ countryCodes, sourceCountryList, preserveOrder = false }) => {
+  return countryData.getFilteredCountryList({ countryCodes, sourceCountryList, preserveOrder });
+};
+
+export const removeCountries = ({ onlyCountries, excludeCountries } = {}) => {
+  return countryData.removeCountries({
+    onlyCountries: onlyCountries || defaultProps.onlyCountries,
+    excludeCountries: excludeCountries || defaultProps.excludeCountries
+  });
+};
+
+export const localizeCountries = ({
+  countries,
+  localization,
+  preserveOrder
+}) => {
+  return countryData.localizeCountries({
+    countries: countries || defaultProps.onlyCountries,
+    localization: localization || defaultProps.localization,
+    preserveOrder: preserveOrder || defaultProps.preserveOrder
+  });
+};
+
+export const getCountryItem = (countryDataArray, prefix = defaultProps.prefix, defaultMask = defaultProps.defaultMask, alwaysDefaultMask = defaultProps.alwaysDefaultMask) => {
+  return countryData.getCountryItem(countryDataArray, prefix, defaultMask, alwaysDefaultMask);
+};
 
 export const getCountryData = (selectedCountry) => {
   if (!selectedCountry) return {}
@@ -96,7 +160,13 @@ export const getCountryData = (selectedCountry) => {
   }
 }
 
-export const guessSelectedCountry = (inputNumber, country, onlyCountries = [], hiddenAreaCodes = [], enableAreaCodes = defaultProps.enableAreaCodes) => {
+export const guessSelectedCountry = ({
+  inputNumber,
+  country,
+  onlyCountries = [],
+  hiddenAreaCodes = [],
+  enableAreaCodes = defaultProps.enableAreaCodes
+}) => {
   if (enableAreaCodes === false) {
     let mainCode;
     hiddenAreaCodes.some(country => {
@@ -160,7 +230,7 @@ class PhoneInput extends React.Component {
     buttonClass: PropTypes.string,
     dropdownClass: PropTypes.string,
     searchClass: PropTypes.string,
-    // for styled-components
+
     className: PropTypes.string,
 
     autoFormat: PropTypes.bool,
@@ -232,12 +302,53 @@ class PhoneInput extends React.Component {
 
   constructor(props) {
     super(props);
-    const { onlyCountries, preferredCountries, hiddenAreaCodes } = new CountryData(
-      props.enableAreaCodes, props.enableTerritories, props.regions,
-      props.onlyCountries, props.preferredCountries, props.excludeCountries, props.preserveOrder,
-      props.masks, props.priority, props.areaCodes, props.localization,
-      props.prefix, props.defaultMask, props.alwaysDefaultMask,
+
+    const { initializedCountries, hiddenAreaCodes } = countryData.getInitializedCountries({
+      priority: props.priority,
+      areaCodes: props.areaCodes,
+      enableAreaCodes: props.enableAreaCodes,
+      prefix: props.prefix,
+      enableTerritories: props.enableTerritories,
+      regions: props.regions,
+      masks: props.masks,
+      defaultMask: props.defaultMask,
+      alwaysDefaultMask: props.alwaysDefaultMask
+    });
+
+    const onlyCountries = countryData.localizeCountries(
+      {
+        countries: countryData.removeCountries({
+          onlyCountries: countryData.getFilteredCountryList({
+            countryCodes: props.onlyCountries,
+            sourceCountryList: initializedCountries,
+            preserveOrder: props.preserveOrder.includes('onlyCountries')
+          })
+        }),
+        localization: props.localization,
+        preserveOrder: props.preserveOrder.includes('onlyCountries')
+      }
     );
+
+    const preferredCountries = props.preferredCountries.length === 0 ? [] :
+    countryData.localizeCountries(
+      {
+        countries: countryData.getFilteredCountryList({
+          countryCodes: props.preferredCountries,
+          sourceCountryList: initializedCountries,
+          preserveOrder: props.preserveOrder.includes('preferredCountries')
+        }),
+        localization: props.localization,
+        preserveOrder: props.preserveOrder.includes('preferredCountries')
+      }
+    );
+
+    const hiddenAreaCodesFiltered = countryData.removeCountries({
+      onlyCountries: countryData.getFilteredCountryList({
+        countryCodes: props.onlyCountries,
+        sourceCountryList: hiddenAreaCodes
+      }),
+      excludeCountries: props.excludeCountries
+    });
 
     const inputNumber = props.value ? props.value.replace(/\D/g, '') : '';
 
@@ -246,7 +357,13 @@ class PhoneInput extends React.Component {
       countryGuess = 0;
     } else if (inputNumber.length > 1) {
       // Country detect by phone
-      countryGuess = guessSelectedCountry(inputNumber.substring(0, 6), props.country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || 0;
+      countryGuess = guessSelectedCountry({
+        inputNumber: inputNumber.substring(0, 6),
+        country: props.country,
+        onlyCountries,
+        hiddenAreaCodes: hiddenAreaCodesFiltered,
+        enableAreaCodes: this.props.enableAreaCodes
+      }) || 0;
     } else if (props.country) {
       // Default country
       countryGuess = onlyCountries.find(o => o.iso2 == props.country) || 0;
@@ -278,7 +395,7 @@ class PhoneInput extends React.Component {
       formattedNumber,
       onlyCountries,
       preferredCountries,
-      hiddenAreaCodes,
+      hiddenAreaCodes: hiddenAreaCodesFiltered,
       selectedCountry: countryGuess,
       highlightCountryIndex,
 
@@ -360,7 +477,13 @@ class PhoneInput extends React.Component {
     else {
       if (this.props.disableCountryGuess) {newSelectedCountry = selectedCountry;}
       else {
-        newSelectedCountry = guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || selectedCountry;
+        newSelectedCountry = guessSelectedCountry({
+          inputNumber: inputNumber.substring(0, 6),
+          country,
+          onlyCountries,
+          hiddenAreaCodes,
+          enableAreaCodes: this.props.enableAreaCodes
+        }) || selectedCountry;
       }
       const dialCode = newSelectedCountry && startsWith(inputNumber, prefix + newSelectedCountry.dialCode) ? newSelectedCountry.dialCode : '';
 
@@ -571,7 +694,13 @@ class PhoneInput extends React.Component {
       if (!this.state.freezeSelection || (!!selectedCountry && selectedCountry.dialCode.length > inputNumber.length)) {
         if (this.props.disableCountryGuess) {newSelectedCountry = selectedCountry;}
         else {
-          newSelectedCountry = guessSelectedCountry(inputNumber.substring(0, 6), country, onlyCountries, hiddenAreaCodes, this.props.enableAreaCodes) || selectedCountry;
+          newSelectedCountry = guessSelectedCountry({
+            inputNumber: inputNumber.substring(0, 6),
+            country,
+            onlyCountries,
+            hiddenAreaCodes,
+            enableAreaCodes: this.props.enableAreaCodes
+          }) || selectedCountry;
         }
         freezeSelection = false;
       }
@@ -1021,11 +1150,5 @@ class PhoneInput extends React.Component {
     );
   }
 }
-
-export const getCountryItem = (countryDataArray, prefix = defaultProps.prefix, defaultMask = defaultProps.defaultMask, alwaysDefaultMask = defaultProps.alwaysDefaultMask) => {
-  return _getCountryItem(countryDataArray, prefix, defaultMask, alwaysDefaultMask);
-};
-
-export { default as countriesList } from './rawCountries';
 
 export default PhoneInput;

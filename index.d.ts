@@ -64,6 +64,31 @@ declare module "react-phone-input-2" {
     ): void;
   }
 
+  /**
+   * example: {ca: 0, us: 1, kz: 0, ru: 1}
+   */
+  export type PriorityCountries = {
+    [key: string]: number;
+  };
+
+  /**
+   * example: {gr: ['2694', '2647'], fr: ['369', '463'], us: ['300']}
+   */
+  export type AreaCodes = {
+    [key: string]: string[];
+  };
+
+  /**
+   * example: {fr: '(...) ..-..-..', at: '(....) ...-....'}
+   */
+  export type Masks = {
+    [key: string]: string;
+  };
+
+  export type Localization = {
+    [key: string]: string;
+  };
+
   export interface PhoneInputProps extends PhoneInputEventsProps, Style {
     country?: string | number;
     value?: string | null;
@@ -91,9 +116,9 @@ declare module "react-phone-input-2" {
     regions?: Regions;
 
     inputProps?: object;
-    localization?: object;
-    masks?: object;
-    areaCodes?: object;
+    localization?: Localization;
+    masks?: Masks;
+    areaCodes?: AreaCodes;
 
     preserveOrder?: string[];
 
@@ -105,7 +130,7 @@ declare module "react-phone-input-2" {
     renderStringAsFlag?: string;
     autocompleteSearch?: boolean;
     jumpCursorToEnd?: boolean;
-    priority?: object;
+    priority?: PriorityCountries;
     enableAreaCodeStretch?: boolean;
     enableClickOutside?: boolean;
     showDropdown?: boolean;
@@ -116,9 +141,51 @@ declare module "react-phone-input-2" {
     disableCountryGuess?: boolean;
   }
 
+  type GuessSelectedCountryProps = {
+    inputNumber: string;
+    country: CountryItem;
+    onlyCountries?: string[];
+    hiddenAreaCodes?: CountryItem[];
+    enableAreaCodes?: boolean;
+  };
+
+  type GetInitializedCountriesProps = {
+    priority?: PriorityCountries;
+    areaCodes?: AreaCodes;
+    enableAreaCodes?: boolean;
+    prefix?: string;
+    enableTerritories?: boolean;
+    regions?: Regions;
+    masks?: Masks;
+    defaultMask?: string;
+    alwaysDefaultMask?: boolean;
+  };
+
+  type LocalizeCountriesProps = {
+    countries: CountryItem[];
+    localization?: Localization;
+    preserveOrder?: boolean;
+  };
+
+  type RemoveCountriesProps = {
+    onlyCountries: CountryItem[];
+    excludeCountries?: string[];
+  };
+
+  type GetFilteredCountryListProps = {
+    countryCodes: string[];
+    sourceCountryList: CountryItem[];
+    preserveOrder?: boolean;
+  };
+
   export function getCountryItem(countryDataArray: any, prefix?: string, defaultMask?: string, alwaysDefaultMask?: string): CountryItem;
   export function getCountryData(selectedCountry: CountryItem): CountryData;
-  export function guessSelectedCountry(inputNumber: string, country: CountryItem, onlyCountries?: string[], hiddenAreaCodes?: CountryItem[], enableAreaCodes?: boolean): number;
+  export function getInitializedCountries(props: GetInitializedCountriesProps = {}): CountryItem[];
+  export function guessSelectedCountry(props: GuessSelectedCountryProps): number;
+  export function localizeCountries(props: LocalizeCountriesProps): CountryItem[];
+  export function removeCountries(props: RemoveCountriesProps): CountryItem[];
+  export function getFilteredCountryList(props: GetFilteredCountryListProps): CountryItem[];
+
   export const countriesList: [];
 
   const PhoneInput: React.FC<PhoneInputProps>;

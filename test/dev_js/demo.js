@@ -1,6 +1,14 @@
 import React from 'react';
 import { render } from 'react-dom';
-import PhoneInput, { countriesList, getCountryItem } from '../../src/index';
+import PhoneInput, {
+  countriesList,
+  getCountryItem,
+  getInitializedCountries,
+  localizeCountries,
+  removeCountries,
+  getFilteredCountryList,
+  guessSelectedCountry
+} from '../../src/index';
 import '../../src/style/style.less';
 
 
@@ -11,6 +19,38 @@ class Demo extends React.Component {
   playgroundKey = 1
 
   componentDidMount() {
+    const { initializedCountries, hiddenAreaCodes } = getInitializedCountries();
+
+    const filteredCountries = getFilteredCountryList({
+      countryCodes: [],
+      sourceCountryList: initializedCountries
+    });
+
+    console.log('filteredCountries: ', filteredCountries);
+
+    const removedCountries = removeCountries({
+      onlyCountries: filteredCountries
+    });
+
+    console.log('removedCountries: ', removedCountries)
+
+    const onlyCountries = localizeCountries({
+      countries: removedCountries
+    });
+
+    console.log('onlyCountries: ', onlyCountries);
+
+    const inputNumber = '33 323 47883';
+
+    const guessSelected = guessSelectedCountry({
+      inputNumber: inputNumber.substring(0, 6),
+      country: 'it',
+      onlyCountries,
+      hiddenAreaCodes
+    });
+
+    console.log('guessSelected: ', guessSelected);
+
     countriesList.forEach((country) => {
       // console.log(getCountryItem(country))
     });
