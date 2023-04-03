@@ -202,6 +202,79 @@ export const guessSelectedCountry = ({
   return bestGuess;
 };
 
+export const formatNumber = ({
+  text,
+  country,
+  disableCountryCode = defaultProps.disableCountryCode,
+  enableAreaCodeStretch = defaultProps.enableAreaCodeStretch,
+  enableLongNumbers = defaultProps.enableLongNumbers,
+  autoFormat = defaultProps.autoFormat,
+  prefix = defaultProps.prefix
+}) => {
+  if (!country) return text;
+
+  const { format } = country;
+
+  let pattern;
+  if (disableCountryCode) {
+    pattern = format.split(' ');
+    pattern.shift();
+    pattern = pattern.join(' ');
+  } else {
+    if (enableAreaCodeStretch && country.isAreaCode) {
+      pattern = format.split(' ');
+      pattern[1] = pattern[1].replace(/\.+/, ''.padEnd(country.areaCodeLength, '.'))
+      pattern = pattern.join(' ');
+    } else {
+      pattern = format;
+    }
+  }
+
+  if (!text || text.length === 0) {
+    return disableCountryCode ? '' : prefix;
+  }
+
+  // for all strings with length less than 3, just return it (1, 2 etc.)
+  // also return the same text if the selected country has no fixed format
+  if ((text && text.length < 2) || !pattern || !autoFormat) {
+    return disableCountryCode ? text : prefix + text;
+  }
+
+  const formattedObject = reduce(pattern, (acc, character) => {
+    if (acc.remainingText.length === 0) {
+      return acc;
+    }
+
+    if (character !== '.') {
+      return {
+        formattedText: acc.formattedText + character,
+        remainingText: acc.remainingText
+      };
+    }
+
+    const [ head, ...tail ] = acc.remainingText;
+
+    return {
+      formattedText: acc.formattedText + head,
+      remainingText: tail
+    };
+  }, {
+    formattedText: '',
+    remainingText: text.split('')
+  });
+
+  let formattedNumber;
+  if (enableLongNumbers) {
+    formattedNumber = formattedObject.formattedText + formattedObject.remainingText.join('');
+  } else {
+    formattedNumber = formattedObject.formattedText;
+  }
+
+  // Always close brackets
+  if (formattedNumber.includes('(') && !formattedNumber.includes(')')) formattedNumber += ')';
+  return formattedNumber;
+}
+
 class PhoneInput extends React.Component {
   static propTypes = {
     country: PropTypes.oneOfType([
@@ -380,10 +453,15 @@ class PhoneInput extends React.Component {
 
     let formattedNumber;
     formattedNumber = (inputNumber === '' && countryGuess === 0) ? '' :
-    this.formatNumber(
-      (props.disableCountryCode ? '' : dialCode) + inputNumber,
-      countryGuess.name ? countryGuess : undefined
-    );
+    formatNumber({
+      text: (props.disableCountryCode ? '' : dialCode) + inputNumber,
+      country: countryGuess.name ? countryGuess : undefined,
+      disableCountryCode: props.disableCountryCode,
+      enableAreaCodeStretch: props.enableAreaCodeStretch,
+      enableLongNumbers: props.enableLongNumbers,
+      autoFormat: props.autoFormat,
+      prefix: props.prefix
+    });
 
     const highlightCountryIndex = onlyCountries.findIndex(o => o == countryGuess);
 
@@ -453,7 +531,15 @@ class PhoneInput extends React.Component {
     if (newSelectedCountry && newSelectedCountry.dialCode) {
       this.setState({
         selectedCountry: newSelectedCountry,
-        formattedNumber: this.props.disableCountryCode ? '' : this.formatNumber(newSelectedCountry.dialCode, newSelectedCountry),
+        formattedNumber: this.props.disableCountryCode ? '' : formatNumber({
+          text: newSelectedCountry.dialCode,
+          country: newSelectedCountry,
+          disableCountryCode: this.props.disableCountryCode,
+          enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+          enableLongNumbers: this.props.enableLongNumbers,
+          autoFormat: this.props.autoFormat,
+          prefix: this.props.prefix
+        }),
       });
     }
   }
@@ -471,7 +557,16 @@ class PhoneInput extends React.Component {
 
     // if new value start with selectedCountry.dialCode, format number, otherwise find newSelectedCountry
     if (selectedCountry && startsWith(value, prefix + selectedCountry.dialCode)) {
-      formattedNumber = this.formatNumber(inputNumber, selectedCountry);
+      formattedNumber = formatNumber({
+        text: inputNumber,
+        country: selectedCountry,
+        disableCountryCode: this.props.disableCountryCode,
+        enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+        enableLongNumbers: this.props.enableLongNumbers,
+        autoFormat: this.props.autoFormat,
+        prefix: this.props.prefix
+      });
+
       this.setState({ formattedNumber });
     }
     else {
@@ -487,10 +582,15 @@ class PhoneInput extends React.Component {
       }
       const dialCode = newSelectedCountry && startsWith(inputNumber, prefix + newSelectedCountry.dialCode) ? newSelectedCountry.dialCode : '';
 
-      formattedNumber = this.formatNumber(
-        (this.props.disableCountryCode ? '' : dialCode) + inputNumber,
-        newSelectedCountry ? (newSelectedCountry) : undefined
-      );
+      formattedNumber = formatNumber({
+        text: (this.props.disableCountryCode ? '' : dialCode) + inputNumber,
+        country: newSelectedCountry ? (newSelectedCountry) : undefined,
+        disableCountryCode: this.props.disableCountryCode,
+        enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+        enableLongNumbers: this.props.enableLongNumbers,
+        autoFormat: this.props.autoFormat,
+        prefix: this.props.prefix
+      });
       this.setState({ selectedCountry: newSelectedCountry, formattedNumber });
     }
   }
@@ -537,72 +637,6 @@ class PhoneInput extends React.Component {
     const container = this.dropdownRef;
     if (!container || !document.body) return;
     container.scrollTop = 0;
-  }
-
-  formatNumber = (text, country) => {
-    if (!country) return text;
-
-    const { format } = country;
-    const { disableCountryCode, enableAreaCodeStretch, enableLongNumbers, autoFormat } = this.props;
-
-    let pattern;
-    if (disableCountryCode) {
-      pattern = format.split(' ');
-      pattern.shift();
-      pattern = pattern.join(' ');
-    } else {
-      if (enableAreaCodeStretch && country.isAreaCode) {
-        pattern = format.split(' ');
-        pattern[1] = pattern[1].replace(/\.+/, ''.padEnd(country.areaCodeLength, '.'))
-        pattern = pattern.join(' ');
-      } else {
-        pattern = format;
-      }
-    }
-
-    if (!text || text.length === 0) {
-      return disableCountryCode ? '' : this.props.prefix;
-    }
-
-    // for all strings with length less than 3, just return it (1, 2 etc.)
-    // also return the same text if the selected country has no fixed format
-    if ((text && text.length < 2) || !pattern || !autoFormat) {
-      return disableCountryCode ? text : this.props.prefix+text;
-    }
-
-    const formattedObject = reduce(pattern, (acc, character) => {
-      if (acc.remainingText.length === 0) {
-        return acc;
-      }
-
-      if (character !== '.') {
-        return {
-          formattedText: acc.formattedText + character,
-          remainingText: acc.remainingText
-        };
-      }
-
-      const [ head, ...tail ] = acc.remainingText;
-
-      return {
-        formattedText: acc.formattedText + head,
-        remainingText: tail
-      };
-    }, {
-      formattedText: '',
-      remainingText: text.split('')
-    });
-
-    let formattedNumber;
-    if (enableLongNumbers) {
-      formattedNumber = formattedObject.formattedText + formattedObject.remainingText.join('');
-    } else {
-      formattedNumber = formattedObject.formattedText;
-    }
-
-    // Always close brackets
-    if (formattedNumber.includes('(') && !formattedNumber.includes(')')) formattedNumber += ')';
-    return formattedNumber;
   }
 
   // Put the cursor to the end of the input (usually after a focus event)
@@ -704,7 +738,16 @@ class PhoneInput extends React.Component {
         }
         freezeSelection = false;
       }
-      formattedNumber = this.formatNumber(inputNumber, newSelectedCountry);
+
+      formattedNumber = formatNumber({
+        text: inputNumber,
+        country: newSelectedCountry,
+        disableCountryCode: this.props.disableCountryCode,
+        enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+        enableLongNumbers: this.props.enableLongNumbers,
+        autoFormat: this.props.autoFormat,
+        prefix: this.props.prefix
+      });
       newSelectedCountry = newSelectedCountry.dialCode ? newSelectedCountry : selectedCountry;
     }
 
@@ -753,7 +796,15 @@ class PhoneInput extends React.Component {
 
     const unformattedNumber = this.state.formattedNumber.replace(' ', '').replace('(', '').replace(')', '').replace('-', '');
     const newNumber = unformattedNumber.length > 1 ? unformattedNumber.replace(currentSelectedCountry.dialCode, newSelectedCountry.dialCode) : newSelectedCountry.dialCode;
-    const formattedNumber = this.formatNumber(newNumber.replace(/\D/g, ''), newSelectedCountry);
+    const formattedNumber = formatNumber({
+      text: newNumber.replace(/\D/g, ''),
+      country: newSelectedCountry,
+      disableCountryCode: this.props.disableCountryCode,
+      enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+      enableLongNumbers: this.props.enableLongNumbers,
+      autoFormat: this.props.autoFormat,
+      prefix: this.props.prefix
+    });
 
     this.setState({
       showDropdown: false,
@@ -975,7 +1026,17 @@ class PhoneInput extends React.Component {
         >
           <div className={inputFlagClasses}/>
           <span className='country-name'>{this.getDropdownCountryName(country)}</span>
-          <span className='dial-code'>{country.format ? this.formatNumber(country.dialCode, country) : (prefix+country.dialCode)}</span>
+          <span className='dial-code'>
+            {country.format ? formatNumber({
+              text: country.dialCode,
+              country,
+              disableCountryCode: this.props.disableCountryCode,
+              enableAreaCodeStretch: this.props.enableAreaCodeStretch,
+              enableLongNumbers: this.props.enableLongNumbers,
+              autoFormat: this.props.autoFormat,
+              prefix: this.props.prefix
+            }) : (prefix+country.dialCode)}
+            </span>
         </li>
       );
     });

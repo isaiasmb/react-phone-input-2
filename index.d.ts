@@ -180,15 +180,26 @@ declare module "react-phone-input-2" {
     preserveOrder?: boolean;
   };
 
+  type FormatNumberProps = {
+    text: string;
+    country: CountryItem;
+    disableCountryCode?: boolean;
+    enableAreaCodeStretch?: boolean;
+    enableLongNumbers?: boolean | number;
+    autoFormat: boolean;
+    prefix?: string;
+  };
+
   export function getCountryItem(countryDataArray: any, prefix?: string, defaultMask?: string, alwaysDefaultMask?: string): CountryItem;
   export function getCountryData(selectedCountry: CountryItem): CountryData;
   export function getInitializedCountries(props: GetInitializedCountriesProps = {}): { initializedCountries: CountryItem[], hiddenAreaCodes: CountryItem[] };
-  export function guessSelectedCountry(props: GuessSelectedCountryProps): number;
+  export function guessSelectedCountry(props: GuessSelectedCountryProps): CountryItem;
   export function localizeCountries(props: LocalizeCountriesProps): CountryItem[];
   export function removeCountries(props: RemoveCountriesProps): CountryItem[];
   export function getFilteredCountryList(props: GetFilteredCountryListProps): CountryItem[];
+  export function formatNumber(props: FormatNumberProps): string;
 
-  export const countriesList: [];
+  export const countriesList: [string, string[], string, string, number | undefined, string[] | undefined][];
 
   const PhoneInput: React.FC<PhoneInputProps>;
   export default PhoneInput;
