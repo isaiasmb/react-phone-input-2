@@ -58,7 +58,7 @@ declare module "react-phone-input-2" {
     isValid?: ((
       value: string,
       country: CountryData,
-      countries: CountriesList,
+      countries: CountryItem[],
       hiddenAreaCodes: CountryItem[],
     ) => boolean | string) | boolean;
     onMount?(
