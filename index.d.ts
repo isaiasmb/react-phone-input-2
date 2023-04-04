@@ -18,6 +18,8 @@ declare module "react-phone-input-2" {
 
   export type Country = string | number;
 
+  export type CountriesList = [string, string[], string, string, number | undefined, string[] | undefined][];
+
   interface Style {
     containerClass?: string;
     inputClass?: string;
@@ -55,9 +57,9 @@ declare module "react-phone-input-2" {
     onEnterKeyPress?(event: React.KeyboardEvent<HTMLInputElement>): void;
     isValid?: ((
       value: string,
-      country: object,
-      countries: object[],
-      hiddenAreaCodes: object[],
+      country: CountryData,
+      countries: CountriesList,
+      hiddenAreaCodes: CountryItem[],
     ) => boolean | string) | boolean;
     onMount?(
       value: string,
@@ -199,7 +201,7 @@ declare module "react-phone-input-2" {
   export function getFilteredCountryList(props: GetFilteredCountryListProps): CountryItem[];
   export function formatNumber(props: FormatNumberProps): string;
 
-  export const countriesList: [string, string[], string, string, number | undefined, string[] | undefined][];
+  export const countriesList: CountriesList;
 
   const PhoneInput: React.FC<PhoneInputProps>;
   export default PhoneInput;
